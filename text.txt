@@ -1,0 +1,391 @@
+csirt/resouces/views/web/beranda.blade.php:
+    <section id="services" class="services">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 mt-4 mt-md-0">
+                <div class="icon-box">
+                    <h4><a href="#">Phising Attack</a></h4>
+                    <p aria-setsize="4">08 September 2022 22:00:15 WIB</p>
+                    <img src="assets/img/Phising_attc.png" height="70%" width="80%">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+csirt/routes/web.php:
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\PostsController;
+use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\WebsitePostController;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
+
+Route::get('/', function () {
+    return view('web/loading');
+});
+
+Route::get('/beranda', function () {
+    return view('web/beranda', [
+        "title" => "Beranda"
+    ]);
+});
+
+Route::get('/layanan', function () {
+    return view('web/layanan', [
+        "title" => "Layanan"
+    ]);
+});
+
+Route::get('/reaktif', function () {
+    return view('web/reaktif', [
+        "title" => "Layanan Reaktif"
+    ]);
+});
+
+Route::get('/proaktif', function () {
+    return view('web/proaktif', [
+        "title" => "Layanan Proaktif"
+    ]);
+});
+
+Route::get('/manajemen_kualitas_keamanan', function () {
+    return view('web/manajemen_kualitas_keamanan', [
+        "title" => "Layanan Manajemen Kualitas Keamanan"
+    ]);
+});
+
+Route::get('/literasi_keamanan_informasi', function () {
+    return view('web/literasi_keamanan_informasi', [
+        "title" => "Literasi keamanan Informasi"
+    ]);
+});
+
+Route::get('/formulir_pengaduan', function () {
+    return view('web/formulir_pengaduan', [
+        "title" => "Formulir Pengaduan"
+    ]);
+});
+
+Route::get('/download', function () {
+    return view('web/download', [
+        "title" => "Download"
+    ]);
+});
+
+Route::get('/kontak', function () {
+    return view('web/kontak', [
+        "title" => "Kontak"
+    ]);
+});
+
+Route::get('/start', [LoginController::class, 'index'])->name('login')->middleware('guest');
+Route::post(
+    '/start',
+    [LoginController::class, 'login']
+);
+
+Route::get('/register', [RegisterController::class, 'index'])->middleware('guest');
+Route::post(
+    '/register',
+    [RegisterController::class, 'register']
+);
+
+Route::post(
+    '/logout',
+    [LoginController::class, 'logout']
+);
+
+Route::get('dashboard', function () {
+    return view('dashboard/index', [
+        "title" => "Dashboard"
+    ]);
+})->middleware('auth');
+
+Route::get('posts', [PostsController::class, 'index'])->name('posts')->middleware('auth');
+Route::post(
+    'posts',
+    [PostsController::class, 'store']
+);
+Route::get('posts/{post}/view', [PostsController::class, 'view'])->name('posts.view');
+Route::get('/posts/{post}/edit', [PostsController::class, 'edit'])->name('posts.edit');
+Route::delete('posts/{post}', [PostsController::class, 'destroy'])->name('posts.destroy');
+Route::patch('/posts/{post}', [PostsController::class, 'update'])->name('posts.update');
+Route::post('/posts/publish/{id}', [PostsController::class, 'PostsController@publish'])->name('posts.publish');
+
+csirt/resouces/posts/index.blade.php:
+    <table class="table table-bordered" style="table-layout: fixed;" id="dataTable" width="100%"
+                        cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Judul</th>
+                                <th>Conten</th>
+                                <th>Image</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($posts as $post)
+                                <tr>
+                                    <td>{{ $post->judul }}</td>
+                                    <td>
+                                        @if (!empty($post->isi))
+                                            {{ $post->isi }}
+                                        @else
+                                            No Text
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($post->gambar)
+                                            <img src="{{ asset('storage/' . $post->gambar) }}" alt="Post Image"
+                                                width="100">
+                                        @else
+                                            No Image
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <a class="btn btn-primary mb-2"
+                                            href="{{ route('posts.view', ['post' => $post]) }}"><i
+                                                class="fa-solid fa-eye"></i></a>
+                                        <a class="btn btn-success mb-2"
+                                            href="{{ route('posts.edit', ['post' => $post]) }}"><i
+                                                class="fa-solid fa-pen-to-square"></i></a>
+                                        <form action="{{ route('posts.destroy', ['post' => $post->id]) }}" method="POST"
+                                            style="display: inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger mb-2"
+                                                onclick="return confirm('Apakah Anda yakin ingin menghapus postingan ini?')"><i
+                                                    class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+                                        @if ($post->status !== 'published')
+                                            <form action="{{ route('posts.publish', ['id' => $post->id]) }}" method="POST"
+                                                style="display: inline;">
+                                                @csrf
+                                                <button type="submit" class="btn btn-success">Publish ke Website</button>
+                                            </form>
+                                        @else
+                                            Sudah Dipublikasikan
+                                        @endif
+                                        </form>
+
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+
+csirt/app/Http/Controllers/PostsController.php:
+ <?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Posts;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\PostsController\Publish;
+
+
+class PostsController extends Controller
+{
+    public function index()
+    {
+        $post = Posts::all();
+        return view('posts.index', [
+            'posts' => $post,
+            'title' => 'All Post',
+        ]);
+    }
+
+    public function create()
+    {
+        return view('posts.index',);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'judul' => 'required|string|max:255',
+            'isi' => 'required|string',
+            'gambar' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'tanggal' => 'required|date',
+            'status' => 'required|in:post,publish',
+        ]);
+
+        try {
+            if ($request->input('status') === 'none') {
+                return redirect()->route('posts')->with('error', 'Please select a valid status option.');
+            }
+
+            if ($request->hasFile('gambar')) {
+                $gambar = $request->file('gambar');
+                $gambarName = time() . '.' . $gambar->getClientOriginalExtension();
+                $gambar->move(public_path('storage'), $gambarName);
+            } else {
+                $gambarName = null;
+            }
+
+            $post = new Posts;
+            $post->judul = $request->input('judul');
+            $post->isi = $request->input('isi');
+            $post->gambar = $gambarName;
+            $post->status = 0;
+            $status = $request->input('status');
+            $status = ($status === 'published') ? 1 : 0;
+            $post->tanggal = $request->input('tanggal');
+            $post->save();
+
+
+            return redirect()->route('posts')->with('sukses', 'Postingan berhasil disimpan.');
+        } catch (\Exception $e) {
+            return redirect()->route('posts')->with('error', 'Terjadi kesalahan saat menyimpan postingan: ' . $e->getMessage());
+        }
+    }
+
+
+
+    /**
+     * Display the specified resource.
+     */
+    public function view($id)
+    {
+        $post = Posts::find($id);
+        if (!$post) {
+            return redirect()->route('posts')->with('error', 'Postingan tidak ditemukan.');
+        }
+
+        return view('posts.view', [
+            'post' => $post,
+            'title' => 'View'
+        ]);
+    }
+
+
+
+    public function edit($id)
+    {
+        $post = Posts::find($id);
+        if (!$post) {
+            return redirect()->route('posts')->with('error', 'Postingan tidak ditemukan.');
+        }
+
+        return view('posts.edit', [
+            "title" => "Edit",
+            "post" => $post,
+        ]);
+    }
+
+    public function destroy(Posts $post)
+    {
+        $post->delete();
+
+        return redirect()->route('posts')->with('sukses', 'Postingan berhasil dihapus.');
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $post = Posts::find($id);
+        if (!$post) {
+            return redirect()->route('posts')->with('error', 'Postingan tidak ditemukan.');
+        }
+
+        if ($request->hasFile('gambar')) {
+            $gambar = $request->file('gambar');
+            $gambarName = time() . '.' . $gambar->getClientOriginalExtension();
+            $gambar->storeAs('public/uploads', $gambarName);
+            $post->gambar = $gambarName;
+        }
+
+        $post->judul = $request->input('judul');
+        $post->isi = $request->input('isi');
+        $post->status = 0;
+        $status = $request->input('status');
+        $status = ($status === 'published') ? 1 : 0;
+        $post->tanggal = $request->input('tanggal');
+        $post->save();
+
+
+        return redirect()->route('posts')->with('sukses', 'Postingan berhasil diperbarui.');
+    }
+
+    public function publish($id)
+    {
+        $post = Posts::find($id);
+        if (!$post) {
+            return redirect()->route('posts')->with('error', 'Postingan tidak ditemukan.');
+        }
+
+        $post->status = 'published';
+        $post->published_at = now();
+        $post->save();
+
+        return redirect()->route('posts')->with('sukses', 'Postingan berhasil dipublikasikan.');
+    }
+}
+
+csirt/Database/migrations/2023_08_21_071401_create_posts_table.php:
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->string('judul');
+            $table->timestamp('tanggal');
+            $table->text('isi');
+            $table->text('gambar')->nullable();
+            $table->text('gambar_baru')->nullable();
+            $table->tinyInteger('status')->default(0);
+            $table->text('published_at')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('posts');
+    }
+};
+
+
+csirt/app/Models/Posts.php:
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Posts extends Model
+{
+    protected $fillable = ['judul', 'isi', 'gambar', 'gambar_baru', 'published_at', 'status'];
+}
+
+Kesalahan: SQLSTATE[22007]: Invalid datetime format: 1366 Incorrect integer value: 'published' for column `csirt`.`posts`.`status` at row 1
